@@ -250,7 +250,10 @@
         font-family: var(--mono);
         font-size: 11px;
         color: var(--muted);
-        max-width: 280px;
+        /* Fixed width so varying problem names don't resize the bar */
+        flex: 0 0 280px;
+        width: 280px;
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
