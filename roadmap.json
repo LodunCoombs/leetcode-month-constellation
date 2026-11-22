@@ -1,0 +1,441 @@
+{
+  "phases": [
+    {
+      "phase": 1,
+      "title": "Fundamentals",
+      "categories": [
+        {
+          "category": "Arrays / Hash Maps",
+          "problems": [
+            { "number": 49, "title": "Group Anagrams" },
+            { "number": 347, "title": "Top K Frequent Elements" },
+            { "number": 238, "title": "Product of Array Except Self" },
+            { "number": 128, "title": "Longest Consecutive Sequence" },
+            { "number": 380, "title": "Insert Delete GetRandom O(1)" },
+            { "number": 36, "title": "Valid Sudoku" }
+          ]
+        },
+        {
+          "category": "Two Pointers",
+          "problems": [
+            { "number": 167, "title": "Two Sum II - Input Array Is Sorted" },
+            { "number": 11, "title": "Container With Most Water" },
+            { "number": 15, "title": "3Sum" },
+            { "number": 16, "title": "3Sum Closest" },
+            { "number": 80, "title": "Remove Duplicates from Sorted Array II" },
+            { "number": 18, "title": "4Sum" }
+          ]
+        },
+        {
+          "category": "Sliding Window",
+          "problems": [
+            {
+              "number": 424,
+              "title": "Longest Repeating Character Replacement"
+            },
+            {
+              "number": 3,
+              "title": "Longest Substring Without Repeating Characters"
+            },
+            { "number": 904, "title": "Fruit Into Baskets" },
+            { "number": 567, "title": "Permutation in String" },
+            { "number": 1004, "title": "Max Consecutive Ones III" },
+            { "number": 209, "title": "Minimum Size Subarray Sum" }
+          ]
+        },
+        {
+          "category": "Prefix Sums + Hash Map / Difference Arrays",
+          "problems": [
+            { "number": 560, "title": "Subarray Sum Equals K" },
+            { "number": 523, "title": "Continuous Subarray Sum" },
+            { "number": 525, "title": "Contiguous Array" },
+            { "number": 974, "title": "Subarray Sums Divisible by K" },
+            { "number": 1094, "title": "Car Pooling" }
+          ]
+        },
+        {
+          "category": "Binary Search",
+          "problems": [
+            { "number": 33, "title": "Search in Rotated Sorted Array" },
+            { "number": 875, "title": "Koko Eating Bananas" },
+            { "number": 153, "title": "Find Minimum in Rotated Sorted Array" },
+            { "number": 74, "title": "Search a 2D Matrix" },
+            {
+              "number": 34,
+              "title": "Find First and Last Position of Element in Sorted Array"
+            },
+            { "number": 162, "title": "Find Peak Element" },
+            { "number": 981, "title": "Time Based Key-Value Store" },
+            {
+              "number": 1011,
+              "title": "Capacity To Ship Packages Within D Days"
+            }
+          ]
+        },
+        {
+          "category": "Stack / Monotonic Stack",
+          "problems": [
+            { "number": 739, "title": "Daily Temperatures" },
+            { "number": 503, "title": "Next Greater Element II" },
+            { "number": 735, "title": "Asteroid Collision" },
+            { "number": 853, "title": "Car Fleet" },
+            { "number": 402, "title": "Remove K Digits" },
+            { "number": 150, "title": "Evaluate Reverse Polish Notation" },
+            { "number": 901, "title": "Online Stock Span" }
+          ]
+        },
+        {
+          "category": "Intervals",
+          "problems": [
+            { "number": 56, "title": "Merge Intervals" },
+            { "number": 435, "title": "Non-overlapping Intervals" },
+            { "number": 57, "title": "Insert Interval" }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "title": "Recursion & Backtracking",
+      "categories": [
+        {
+          "category": "Recursion / recursive return basics",
+          "problems": [
+            { "number": 50, "title": "Pow(x, n)" },
+            { "number": 779, "title": "K-th Symbol in Grammar" },
+            { "number": 24, "title": "Swap Nodes in Pairs" },
+            { "number": 241, "title": "Different Ways to Add Parentheses" }
+          ]
+        },
+        {
+          "category": "Subsets, permutations, combinations",
+          "problems": [
+            { "number": 78, "title": "Subsets" },
+            { "number": 46, "title": "Permutations" },
+            { "number": 77, "title": "Combinations" },
+            { "number": 90, "title": "Subsets II" },
+            { "number": 47, "title": "Permutations II" },
+            { "number": 784, "title": "Letter Case Permutation" }
+          ]
+        },
+        {
+          "category": "Combination sum, duplicate handling, pruning",
+          "problems": [
+            { "number": 39, "title": "Combination Sum" },
+            { "number": 40, "title": "Combination Sum II" },
+            { "number": 216, "title": "Combination Sum III" },
+            { "number": 494, "title": "Target Sum" },
+            { "number": 377, "title": "Combination Sum IV" },
+            { "number": 473, "title": "Matchsticks to Square" }
+          ]
+        },
+        {
+          "category": "Grid / constraint backtracking",
+          "problems": [
+            { "number": 79, "title": "Word Search" },
+            { "number": 113, "title": "Path Sum II" },
+            { "number": 200, "title": "Number of Islands" },
+            { "number": 417, "title": "Pacific Atlantic Water Flow" },
+            { "number": 130, "title": "Surrounded Regions" }
+          ]
+        },
+        {
+          "category": "Mixed backtracking mediums",
+          "problems": [
+            { "number": 17, "title": "Letter Combinations of a Phone Number" },
+            { "number": 22, "title": "Generate Parentheses" },
+            { "number": 131, "title": "Palindrome Partitioning" },
+            { "number": 93, "title": "Restore IP Addresses" }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "title": "Trees & DP Intro",
+      "categories": [
+        {
+          "category": "Tree DFS/BFS, recursive and iterative",
+          "problems": [
+            { "number": 102, "title": "Binary Tree Level Order Traversal" },
+            { "number": 199, "title": "Binary Tree Right Side View" },
+            {
+              "number": 103,
+              "title": "Binary Tree Zigzag Level Order Traversal"
+            },
+            { "number": 1448, "title": "Count Good Nodes in Binary Tree" },
+            { "number": 662, "title": "Maximum Width of Binary Tree" },
+            {
+              "number": 117,
+              "title": "Populating Next Right Pointers in Each Node II"
+            },
+            { "number": 114, "title": "Flatten Binary Tree to Linked List" }
+          ]
+        },
+        {
+          "category": "BST properties",
+          "problems": [
+            { "number": 98, "title": "Validate Binary Search Tree" },
+            { "number": 230, "title": "Kth Smallest Element in a BST" },
+            { "number": 173, "title": "Binary Search Tree Iterator" },
+            { "number": 450, "title": "Delete Node in a BST" }
+          ]
+        },
+        {
+          "category": "LCA / diameter / path problems",
+          "problems": [
+            {
+              "number": 236,
+              "title": "Lowest Common Ancestor of a Binary Tree"
+            },
+            { "number": 113, "title": "Path Sum II" },
+            { "number": 437, "title": "Path Sum III" },
+            { "number": 687, "title": "Longest Univalue Path" },
+            { "number": 1372, "title": "Longest ZigZag Path in Binary Tree" }
+          ]
+        },
+        {
+          "category": "Serialize/deserialize / tree construction basics",
+          "problems": [
+            {
+              "number": 105,
+              "title": "Construct Binary Tree from Preorder and Inorder Traversal"
+            },
+            {
+              "number": 106,
+              "title": "Construct Binary Tree from Inorder and Postorder Traversal"
+            },
+            { "number": 449, "title": "Serialize and Deserialize BST" },
+            {
+              "number": 889,
+              "title": "Construct Binary Tree from Preorder and Postorder Traversal"
+            }
+          ]
+        },
+        {
+          "category": "1D DP starter",
+          "problems": [
+            { "number": 198, "title": "House Robber" },
+            { "number": 322, "title": "Coin Change" },
+            { "number": 91, "title": "Decode Ways" },
+            { "number": 213, "title": "House Robber II" },
+            { "number": 139, "title": "Word Break" },
+            { "number": 300, "title": "Longest Increasing Subsequence" },
+            { "number": 343, "title": "Integer Break" },
+            { "number": 55, "title": "Jump Game" },
+            { "number": 152, "title": "Maximum Product Subarray" },
+            { "number": 279, "title": "Perfect Squares" }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "title": "Graphs",
+      "categories": [
+        {
+          "category": "Grid BFS/DFS",
+          "problems": [
+            { "number": 200, "title": "Number of Islands" },
+            { "number": 695, "title": "Max Area of Island" },
+            { "number": 417, "title": "Pacific Atlantic Water Flow" },
+            { "number": 1091, "title": "Shortest Path in Binary Matrix" },
+            { "number": 79, "title": "Word Search" },
+            { "number": 1020, "title": "Number of Enclaves" }
+          ]
+        },
+        {
+          "category": "Adjacency-list DFS/BFS + connected components, especially non-grid",
+          "problems": [
+            { "number": 133, "title": "Clone Graph" },
+            { "number": 841, "title": "Keys and Rooms" },
+            { "number": 547, "title": "Number of Provinces" },
+            {
+              "number": 1466,
+              "title": "Reorder Routes to Make All Paths Lead to the City Zero"
+            },
+            { "number": 797, "title": "All Paths From Source to Target" },
+            {
+              "number": 2316,
+              "title": "Count Unreachable Pairs of Nodes in an Undirected Graph"
+            },
+            {
+              "number": 947,
+              "title": "Most Stones Removed with Same Row or Column"
+            },
+            { "number": 399, "title": "Evaluate Division" },
+            {
+              "number": 2685,
+              "title": "Count the Number of Complete Components"
+            },
+            { "number": 886, "title": "Possible Bipartition" }
+          ]
+        },
+        {
+          "category": "Cycle detection, directed and undirected",
+          "problems": [
+            { "number": 207, "title": "Course Schedule" },
+            { "number": 802, "title": "Find Eventual Safe States" },
+            { "number": 1559, "title": "Detect Cycles in 2D Grid" },
+            { "number": 785, "title": "Is Graph Bipartite?" }
+          ]
+        },
+        {
+          "category": "Topological sort",
+          "problems": [
+            { "number": 210, "title": "Course Schedule II" },
+            { "number": 310, "title": "Minimum Height Trees" },
+            {
+              "number": 2115,
+              "title": "Find All Possible Recipes from Given Supplies"
+            },
+            { "number": 1462, "title": "Course Schedule IV" },
+            { "number": 2392, "title": "Build a Matrix With Conditions" }
+          ]
+        },
+        {
+          "category": "Union-Find / DSU",
+          "problems": [
+            { "number": 684, "title": "Redundant Connection" },
+            { "number": 721, "title": "Accounts Merge" },
+            {
+              "number": 1319,
+              "title": "Number of Operations to Make Network Connected"
+            },
+            { "number": 990, "title": "Satisfiability of Equality Equations" },
+            { "number": 1202, "title": "Smallest String With Swaps" }
+          ]
+        },
+        {
+          "category": "Dijkstra / weighted shortest paths",
+          "problems": [
+            { "number": 743, "title": "Network Delay Time" },
+            { "number": 787, "title": "Cheapest Flights Within K Stops" },
+            { "number": 1631, "title": "Path With Minimum Effort" },
+            { "number": 1514, "title": "Path with Maximum Probability" },
+            {
+              "number": 1334,
+              "title": "Find the City With the Smallest Number of Neighbors at a Threshold Distance"
+            }
+          ]
+        },
+        {
+          "category": "Implicit graphs / multi-source BFS / non-grid modeling",
+          "problems": [
+            { "number": 994, "title": "Rotting Oranges" },
+            { "number": 752, "title": "Open the Lock" },
+            { "number": 433, "title": "Minimum Genetic Mutation" }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "title": "DP and Binary Search on Answer",
+      "categories": [
+        {
+          "category": "2D / grid DP",
+          "problems": [
+            { "number": 64, "title": "Minimum Path Sum" },
+            { "number": 63, "title": "Unique Paths II" },
+            { "number": 931, "title": "Minimum Falling Path Sum" },
+            { "number": 120, "title": "Triangle" },
+            { "number": 221, "title": "Maximal Square" },
+            {
+              "number": 1277,
+              "title": "Count Square Submatrices with All Ones"
+            }
+          ]
+        },
+        {
+          "category": "Knapsack / subset / partition / coin change",
+          "problems": [
+            { "number": 416, "title": "Partition Equal Subset Sum" },
+            { "number": 494, "title": "Target Sum" },
+            { "number": 518, "title": "Coin Change II" },
+            { "number": 1049, "title": "Last Stone Weight II" },
+            { "number": 474, "title": "Ones and Zeroes" },
+            { "number": 698, "title": "Partition to K Equal Sum Subsets" },
+            { "number": 1155, "title": "Number of Dice Rolls With Target Sum" }
+          ]
+        },
+        {
+          "category": "LIS / sequence DP",
+          "problems": [
+            { "number": 646, "title": "Maximum Length of Pair Chain" },
+            {
+              "number": 673,
+              "title": "Number of Longest Increasing Subsequence"
+            },
+            { "number": 1048, "title": "Longest String Chain" },
+            { "number": 376, "title": "Wiggle Subsequence" },
+            { "number": 1626, "title": "Best Team With No Conflicts" }
+          ]
+        },
+        {
+          "category": "Edit distance / string DP",
+          "problems": [
+            { "number": 1143, "title": "Longest Common Subsequence" },
+            { "number": 583, "title": "Delete Operation for Two Strings" },
+            {
+              "number": 712,
+              "title": "Minimum ASCII Delete Sum for Two Strings"
+            },
+            { "number": 72, "title": "Edit Distance" }
+          ]
+        },
+        {
+          "category": "Interval DP",
+          "problems": [
+            { "number": 516, "title": "Longest Palindromic Subsequence" },
+            {
+              "number": 1039,
+              "title": "Minimum Score Triangulation of Polygon"
+            },
+            { "number": 486, "title": "Predict the Winner" }
+          ]
+        },
+        {
+          "category": "Tree DP",
+          "problems": [
+            { "number": 337, "title": "House Robber III" },
+            { "number": 543, "title": "Diameter of Binary Tree" },
+            { "number": 687, "title": "Longest Univalue Path" }
+          ]
+        },
+        {
+          "category": "Binary search on the answer",
+          "problems": [
+            { "number": 875, "title": "Koko Eating Bananas" },
+            {
+              "number": 1011,
+              "title": "Capacity To Ship Packages Within D Days"
+            },
+            {
+              "number": 1482,
+              "title": "Minimum Number of Days to Make m Bouquets"
+            },
+            {
+              "number": 1283,
+              "title": "Find the Smallest Divisor Given a Threshold"
+            },
+            { "number": 1870, "title": "Minimum Speed to Arrive on Time" }
+          ]
+        },
+        {
+          "category": "Mixed DP mediums",
+          "problems": [
+            { "number": 53, "title": "Maximum Subarray" },
+            { "number": 96, "title": "Unique Binary Search Trees" },
+            {
+              "number": 309,
+              "title": "Best Time to Buy and Sell Stock with Cooldown"
+            },
+            { "number": 377, "title": "Combination Sum IV" },
+            { "number": 1027, "title": "Longest Arithmetic Subsequence" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1824 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Constellation · 175 Problems</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <style>
+      :root {
+        --bg: #05070c;
+        --panel: rgba(10, 14, 24, 0.72);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #e6edf7;
+        --muted: #7c8aa5;
+        --gold: #fbbf24;
+        --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+        --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        --serif: "Instrument Serif", Georgia, serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+      }
+      canvas:active {
+        cursor: grabbing;
+      }
+
+      /* Top Left Header */
+      .hud-header {
+        position: fixed;
+        top: 22px;
+        left: 26px;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .hud-title {
+        font-family: var(--serif);
+        font-size: 30px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1.05;
+        color: #f3f6fc;
+        text-shadow: 0 2px 24px rgba(0, 0, 0, 0.8);
+      }
+      .hud-title em {
+        font-style: italic;
+        color: #a5b4fc;
+      }
+      .hud-stats {
+        margin-top: 8px;
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+      }
+      .hud-stats span strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* Top Right Controls */
+      .hud-controls {
+        position: fixed;
+        top: 22px;
+        right: 26px;
+        z-index: 10;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .glass-group {
+        display: flex;
+        gap: 2px;
+        padding: 4px;
+        background: var(--panel);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+
+      button {
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        background: transparent;
+        border: none;
+        padding: 6px 11px;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+      button:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      button.active {
+        color: #05070c;
+        background: #e6edf7;
+      }
+
+      .icon-btn {
+        background: var(--panel);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 12px;
+        color: var(--text);
+      }
+
+      /* Filter Pills (Bottom Left above Timeline) */
+      .phase-bar {
+        position: fixed;
+        left: 26px;
+        bottom: 86px;
+        z-index: 10;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        max-width: calc(100vw - 420px);
+      }
+      .phase-pill {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 10px;
+        font-size: 11.5px;
+        background: var(--panel);
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+      .phase-pill:hover {
+        color: var(--text);
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+      .phase-pill.active {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.35);
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* Bottom Replay Bar */
+      .timeline-bar {
+        position: fixed;
+        left: 26px;
+        right: 26px;
+        bottom: 22px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 16px;
+        background: var(--panel);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+      }
+      .play-btn {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        flex-shrink: 0;
+      }
+      .play-btn:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .timeline-date {
+        font-family: var(--mono);
+        font-size: 12px;
+        min-width: 118px;
+        color: var(--text);
+      }
+      .scrubber {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        outline: none;
+        cursor: pointer;
+      }
+      .scrubber::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #f8fafc;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+      }
+      .speed-btn {
+        font-family: var(--mono);
+        font-size: 11px;
+        min-width: 38px;
+        padding: 5px 8px;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .ticker {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        max-width: 280px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: right;
+      }
+      .ticker .ok {
+        color: #34d399;
+      }
+      .ticker .revisit {
+        color: var(--gold);
+      }
+
+      /* Hover Tooltip */
+      .tooltip {
+        position: fixed;
+        z-index: 20;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, -115%);
+        transition: opacity 0.12s ease;
+        padding: 8px 12px;
+        background: rgba(7, 10, 18, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 9px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        max-width: 280px;
+      }
+      .tooltip.show {
+        opacity: 1;
+      }
+      .tooltip-title {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #f8fafc;
+      }
+      .tooltip-meta {
+        margin-top: 3px;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--muted);
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      /* Problem Dossier Drawer (Click) */
+      .dossier {
+        position: fixed;
+        top: 76px;
+        right: 26px;
+        bottom: 86px;
+        width: 340px;
+        z-index: 15;
+        padding: 20px;
+        background: rgba(8, 12, 22, 0.84);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        transform: translateX(390px);
+        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        overflow: hidden;
+      }
+      .dossier.open {
+        transform: translateX(0);
+      }
+      .dossier-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font-size: 16px;
+        padding: 4px 9px;
+      }
+      .dossier-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .dossier-title {
+        margin-top: 4px;
+        font-family: var(--serif);
+        font-size: 26px;
+        line-height: 1.12;
+        color: #f8fafc;
+        padding-right: 24px;
+      }
+      .dossier-badges {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .badge {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+      .badge.Easy {
+        color: #34d399;
+        border-color: rgba(52, 211, 153, 0.28);
+      }
+      .badge.Medium {
+        color: #fbbf24;
+        border-color: rgba(251, 191, 36, 0.28);
+      }
+      .badge.Hard {
+        color: #fb7185;
+        border-color: rgba(251, 113, 133, 0.28);
+      }
+      .badge.elo {
+        color: #a5b4fc;
+        border-color: rgba(165, 180, 252, 0.28);
+      }
+      .badge.bridge {
+        color: #f472b6;
+        border-color: rgba(244, 114, 182, 0.3);
+      }
+
+      .dossier-section {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+      }
+      .dossier-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .dossier-cats {
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: #cbd5e1;
+      }
+
+      .sub-list {
+        flex: 1;
+        overflow-y: auto;
+        margin-top: 6px;
+        padding-right: 4px;
+      }
+      .sub-item {
+        position: relative;
+        padding: 8px 0 8px 16px;
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 12px;
+      }
+      .sub-item::before {
+        content: "";
+        position: absolute;
+        left: -4px;
+        top: 13px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #64748b;
+      }
+      .sub-item.accepted::before {
+        background: #34d399;
+        box-shadow: 0 0 8px rgba(52, 211, 153, 0.7);
+      }
+      .sub-item.revisit::before {
+        background: var(--gold);
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.9);
+      }
+      .sub-status {
+        font-weight: 500;
+        color: var(--text);
+      }
+      .sub-time {
+        margin-top: 2px;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--muted);
+      }
+      .sub-gap {
+        display: inline-block;
+        margin-left: 6px;
+        color: var(--gold);
+      }
+      .dossier-link {
+        margin-top: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 9px;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 500;
+        transition: background 0.15s ease;
+      }
+      .dossier-link:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      /* Fallback loader if opened via file:// */
+      .fallback-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none;
+        place-items: center;
+        background: rgba(5, 7, 12, 0.92);
+        backdrop-filter: blur(12px);
+        padding: 24px;
+      }
+      .fallback-modal.show {
+        display: grid;
+      }
+      .fallback-card {
+        max-width: 480px;
+        padding: 28px;
+        border-radius: 16px;
+        background: #0c111d;
+        border: 1px solid var(--border);
+        line-height: 1.55;
+        font-size: 13.5px;
+        color: #cbd5e1;
+      }
+      .fallback-card h2 {
+        font-family: var(--serif);
+        font-size: 26px;
+        color: #f8fafc;
+        margin-bottom: 10px;
+      }
+      .fallback-card code {
+        display: block;
+        margin: 12px 0;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #a5b4fc;
+      }
+      .file-inputs {
+        margin-top: 14px;
+        display: grid;
+        gap: 10px;
+      }
+      .file-inputs label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        font-family: var(--mono);
+        font-size: 11.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="sky"></canvas>
+
+    <div class="hud-header">
+      <div class="hud-title">Thirty-Four Days <em>in Orbit</em></div>
+      <div class="hud-stats" id="hudStats">
+        <span>Loading telemetry...</span>
+      </div>
+    </div>
+
+    <div class="hud-controls">
+      <div class="glass-group" id="layoutSwitch">
+        <button class="active" data-mode="constellation">Constellation</button>
+        <button data-mode="spiral">34-Day Orbit</button>
+      </div>
+      <button
+        class="icon-btn"
+        id="resetViewBtn"
+        title="Reset Zoom (Double-click canvas)"
+      >
+        Fit
+      </button>
+      <button class="icon-btn" id="exportBtn" title="Save high-resolution PNG">
+        Export PNG
+      </button>
+    </div>
+
+    <div class="phase-bar" id="phaseBar"></div>
+
+    <div class="timeline-bar">
+      <button
+        class="play-btn"
+        id="playBtn"
+        title="Play / Pause Time-Lapse (Space)"
+      >
+        ▶
+      </button>
+      <div class="timeline-date" id="timelineDate">—</div>
+      <input
+        type="range"
+        class="scrubber"
+        id="scrubber"
+        min="0"
+        max="1000"
+        value="1000"
+      />
+      <button class="speed-btn" id="speedBtn" title="Replay speed">1x</button>
+      <div class="ticker" id="ticker">Full constellation</div>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+      <div class="tooltip-title" id="ttTitle"></div>
+      <div class="tooltip-meta" id="ttMeta"></div>
+    </div>
+
+    <aside class="dossier" id="dossier">
+      <button class="dossier-close" id="dossierClose">✕</button>
+      <div class="dossier-num" id="dNum"></div>
+      <div class="dossier-title" id="dTitle"></div>
+      <div class="dossier-badges" id="dBadges"></div>
+      <div class="dossier-section">
+        <div class="dossier-label">Roadmap Threads</div>
+        <div class="dossier-cats" id="dCats"></div>
+      </div>
+      <div
+        class="dossier-section"
+        style="flex: 1; display: flex; flex-direction: column; min-height: 0"
+      >
+        <div class="dossier-label">Submission Log</div>
+        <div class="sub-list" id="dSubs"></div>
+      </div>
+      <a class="dossier-link" id="dLink" target="_blank" rel="noopener"
+        >Open on LeetCode ↗</a
+      >
+    </aside>
+
+    <div class="fallback-modal" id="fallbackModal">
+      <div class="fallback-card">
+        <h2>Local Server Recommended</h2>
+        <p>
+          Browsers block <code>fetch()</code> when opening HTML via
+          <code>file://</code>. Run a quick server in this folder:
+        </p>
+        <code>python3 -m http.server 8000</code>
+        <p>
+          Then open <strong>http://localhost:8000</strong> — or load both files
+          manually below:
+        </p>
+        <div class="file-inputs">
+          <label
+            >enriched_data.json
+            <input type="file" id="fileEnriched" accept=".json"
+          /></label>
+          <label
+            >roadmap.json <input type="file" id="fileRoadmap" accept=".json"
+          /></label>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const PHASE_META = {
+          1: {
+            name: "I · Fundamentals",
+            short: "I · Fundamentals",
+            color: "#67e8f9",
+            rgb: "103, 232, 249",
+          },
+          2: {
+            name: "II · Recursion & Backtracking",
+            short: "II · Backtracking",
+            color: "#818cf8",
+            rgb: "129, 140, 248",
+          },
+          3: {
+            name: "III · Trees & DP Intro",
+            short: "III · Trees & DP",
+            color: "#34d399",
+            rgb: "52, 211, 153",
+          },
+          4: {
+            name: "IV · Graphs",
+            short: "IV · Graphs",
+            color: "#a78bfa",
+            rgb: "167, 139, 250",
+          },
+          5: {
+            name: "V · DP & Binary Search",
+            short: "V · DP & BS",
+            color: "#f472b6",
+            rgb: "244, 114, 182",
+          },
+          0: {
+            name: "Side Quests / Daily",
+            short: "Off-Roadmap",
+            color: "#cbd5e1",
+            rgb: "203, 213, 225",
+          },
+        };
+
+        const DIFF_RADIUS = { Easy: 4.4, Medium: 6.1, Hard: 8.2 };
+        const REVISIT_GAP_SEC = 24 * 3600; // >= 24h gap counts as multi-day revisit
+
+        const canvas = document.getElementById("sky");
+        const ctx = canvas.getContext("2d");
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        // State
+        let nodes = [];
+        let links = [];
+        let submissions = [];
+        let nodeBySlug = new Map();
+        let adjMap = new Map();
+        let phaseCenters = {};
+        let minTs = 0;
+        let maxTs = 0;
+
+        let layoutMode = "constellation"; // 'constellation' | 'spiral'
+        let activeFilter = "all"; // 'all' | '1'..'5' | '0' | 'bridge' | 'revisit'
+        let hoveredNode = null;
+        let selectedNode = null;
+        let transform = d3.zoomIdentity;
+
+        // Replay state
+        let isPlaying = false;
+        let replayTs = 0;
+        let prevReplayTs = 0;
+        let replaySpeedIdx = 0;
+        const SPEEDS = [
+          { label: "1x", daysPerSec: 1.3 },
+          { label: "2.5x", daysPerSec: 3.2 },
+          { label: "6x", daysPerSec: 7.5 },
+        ];
+
+        let ripples = [];
+        let ambientDust = [];
+        let particles = [];
+        let simulation = null;
+        let lastFrameTime = performance.now();
+
+        // Hover fade map for buttery transitions
+        let focusOpacity = new Map();
+
+        function resize() {
+          width = window.innerWidth;
+          height = window.innerHeight;
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(width * dpr);
+          canvas.height = Math.floor(height * dpr);
+          initDust();
+          computePhaseCenters();
+        }
+        window.addEventListener("resize", resize);
+
+        function initDust() {
+          ambientDust = Array.from({ length: 160 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            r: Math.random() * 1.1 + 0.3,
+            a: Math.random() * 0.2 + 0.03,
+            twinkleSpeed: Math.random() * 0.0015 + 0.0005,
+            phase: Math.random() * Math.PI * 2,
+          }));
+        }
+
+        function computePhaseCenters() {
+          const R = Math.min(width, height) * 0.27;
+          // Arrange phases in a gentle ascending cosmic arc (I -> V)
+          const angles = {
+            1: -Math.PI * 0.85,
+            2: -Math.PI * 0.45,
+            3: -Math.PI * 0.05,
+            4: Math.PI * 0.38,
+            5: Math.PI * 0.78,
+          };
+          phaseCenters = {};
+          for (const p of [1, 2, 3, 4, 5]) {
+            phaseCenters[p] = {
+              x: Math.cos(angles[p]) * R * 1.18,
+              y: Math.sin(angles[p]) * R * 0.86,
+            };
+          }
+          phaseCenters[0] = { x: 0, y: 0 };
+        }
+
+        function normalizeTitle(t) {
+          return (t || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, " ")
+            .trim();
+        }
+
+        function buildGraph(enriched, roadmap) {
+          submissions = [...enriched.submissions].sort(
+            (a, b) => a.timestamp - b.timestamp,
+          );
+          minTs = submissions[0].timestamp;
+          maxTs = submissions[submissions.length - 1].timestamp;
+          replayTs = maxTs;
+          prevReplayTs = maxTs;
+
+          // Index roadmap by number and normalized title
+          const roadmapByNum = new Map();
+          const roadmapByTitle = new Map();
+
+          for (const phaseObj of roadmap.phases) {
+            for (const catObj of phaseObj.categories) {
+              for (const prob of catObj.problems) {
+                const entry = {
+                  phase: phaseObj.phase,
+                  phaseTitle: phaseObj.title,
+                  category: catObj.category,
+                };
+                if (!roadmapByNum.has(prob.number))
+                  roadmapByNum.set(prob.number, []);
+                roadmapByNum.get(prob.number).push(entry);
+
+                const nt = normalizeTitle(prob.title);
+                if (!roadmapByTitle.has(nt)) roadmapByTitle.set(nt, []);
+                roadmapByTitle.get(nt).push(entry);
+              }
+            }
+          }
+
+          // Group submissions per slug
+          const subsBySlug = new Map();
+          for (const sub of submissions) {
+            if (!subsBySlug.has(sub.slug)) subsBySlug.set(sub.slug, []);
+            subsBySlug.get(sub.slug).push(sub);
+          }
+
+          nodes = [];
+          nodeBySlug = new Map();
+
+          const rawProblems = Object.values(enriched.problems);
+          for (const p of rawProblems) {
+            const pSubs = subsBySlug.get(p.slug) || [];
+            if (pSubs.length === 0) continue;
+
+            // Match roadmap entries
+            let entries =
+              roadmapByNum.get(p.number) ||
+              roadmapByTitle.get(normalizeTitle(p.title)) ||
+              [];
+            // Deduplicate phase+category
+            const seenEC = new Set();
+            entries = entries.filter((e) => {
+              const k = `${e.phase}|${e.category}`;
+              if (seenEC.has(k)) return false;
+              seenEC.add(k);
+              return true;
+            });
+
+            const phases = [...new Set(entries.map((e) => e.phase))].sort(
+              (a, b) => a - b,
+            );
+            const primaryPhase = phases.length ? phases[phases.length - 1] : 0; // Highlight highest/latest phase if bridge
+            const isBridge = phases.length > 1;
+
+            // Detect revisits (>= 24h between submissions)
+            let revisitCount = 0;
+            let hasFailure = false;
+            let acceptedCount = 0;
+            const annotatedSubs = pSubs.map((s, idx) => {
+              if (s.status === "Accepted") acceptedCount++;
+              else hasFailure = true;
+              const prev = idx > 0 ? pSubs[idx - 1] : null;
+              const gapSec = prev ? s.timestamp - prev.timestamp : 0;
+              const isRevisit = gapSec >= REVISIT_GAP_SEC;
+              if (isRevisit) revisitCount++;
+              return { ...s, gapSec, isRevisit };
+            });
+
+            const firstTs = annotatedSubs[0].timestamp;
+            const lastTs = annotatedSubs[annotatedSubs.length - 1].timestamp;
+
+            // Compute node visual radius: Difficulty + ELO + effort
+            let r = DIFF_RADIUS[p.difficulty] || 5.6;
+            if (p.elo) {
+              const eloBoost = Math.max(0, (p.elo - 1350) / 350) * 2.2;
+              r += eloBoost;
+            }
+            r += Math.min(annotatedSubs.length - 1, 5) * 0.45;
+
+            const node = {
+              id: p.slug,
+              slug: p.slug,
+              number: p.number,
+              title: p.title,
+              difficulty: p.difficulty || "Unknown",
+              elo: p.elo,
+              phases,
+              primaryPhase,
+              isBridge,
+              roadmapEntries: entries,
+              subs: annotatedSubs,
+              firstTs,
+              lastTs,
+              revisitCount,
+              hasFailure,
+              everAccepted: acceptedCount > 0,
+              r,
+              x: (Math.random() - 0.5) * 300,
+              y: (Math.random() - 0.5) * 300,
+              spiralX: 0,
+              spiralY: 0,
+              color: PHASE_META[primaryPhase].color,
+              rgb: PHASE_META[primaryPhase].rgb,
+              twinkleOffset: Math.random() * Math.PI * 2,
+            };
+
+            nodes.push(node);
+            nodeBySlug.set(node.slug, node);
+            focusOpacity.set(node.slug, 1);
+          }
+
+          // Sort nodes chronologically to compute spiral coordinates
+          const chronoNodes = [...nodes].sort((a, b) => a.firstTs - b.firstTs);
+          const span = Math.max(1, maxTs - minTs);
+          const maxSpiralR = Math.min(width, height) * 0.39;
+          const minSpiralR = 34;
+          const turns = 2.75;
+
+          chronoNodes.forEach((n, idx) => {
+            const tTime = (n.firstTs - minTs) / span;
+            const tIdx = idx / Math.max(1, chronoNodes.length - 1);
+            const t = tTime * 0.72 + tIdx * 0.28; // preserves day pacing while keeping stars legible
+            const angle = -Math.PI / 2 + t * turns * Math.PI * 2;
+            const rad =
+              minSpiralR + Math.pow(t, 0.92) * (maxSpiralR - minSpiralR);
+            n.spiralX = Math.cos(angle) * rad;
+            n.spiralY = Math.sin(angle) * rad;
+          });
+
+          // Build constellation links
+          links = [];
+          const linkSet = new Set();
+          adjMap = new Map();
+          nodes.forEach((n) => adjMap.set(n.slug, new Set()));
+
+          function addLink(aSlug, bSlug, kind, phase = 0) {
+            if (aSlug === bSlug) return;
+            const key =
+              aSlug < bSlug ? `${aSlug}--${bSlug}` : `${bSlug}--${aSlug}`;
+            if (linkSet.has(key)) return;
+            linkSet.add(key);
+            adjMap.get(aSlug).add(bSlug);
+            adjMap.get(bSlug).add(aSlug);
+            links.push({
+              source: aSlug,
+              target: bSlug,
+              kind, // 'category' | 'bridge' | 'comet'
+              phase,
+              curve: (Math.random() - 0.5) * 0.28,
+            });
+          }
+
+          // Group solved nodes by (phase, category)
+          for (const phaseObj of roadmap.phases) {
+            for (const catObj of phaseObj.categories) {
+              const catNodes = [];
+              for (const prob of catObj.problems) {
+                const found = nodes.find(
+                  (n) =>
+                    n.number === prob.number ||
+                    normalizeTitle(n.title) === normalizeTitle(prob.title),
+                );
+                if (found && !catNodes.includes(found)) catNodes.push(found);
+              }
+              catNodes.sort((a, b) => a.firstTs - b.firstTs);
+              for (let i = 0; i < catNodes.length - 1; i++) {
+                const a = catNodes[i];
+                const b = catNodes[i + 1];
+                const kind = a.isBridge || b.isBridge ? "bridge" : "category";
+                addLink(a.slug, b.slug, kind, phaseObj.phase);
+              }
+              // Close subtle constellation polygon for categories >= 4
+              if (catNodes.length >= 4) {
+                addLink(
+                  catNodes[catNodes.length - 1].slug,
+                  catNodes[0].slug,
+                  "category",
+                  phaseObj.phase,
+                );
+              }
+            }
+          }
+
+          // Tether off-roadmap problems gently to nearest roadmap problem in time
+          const roadmapNodes = chronoNodes.filter((n) => n.primaryPhase !== 0);
+          for (const n of nodes) {
+            if (n.primaryPhase === 0 && roadmapNodes.length) {
+              let best = roadmapNodes[0];
+              let bestDist = Infinity;
+              for (const rn of roadmapNodes) {
+                const d = Math.abs(rn.firstTs - n.firstTs);
+                if (d < bestDist) {
+                  bestDist = d;
+                  best = rn;
+                }
+              }
+              addLink(n.slug, best.slug, "comet", 0);
+            }
+          }
+
+          // Initialize drifting light particles on a subset of links
+          particles = links
+            .filter((_, i) => i % 2 === 0)
+            .map((l) => ({
+              link: l,
+              t: Math.random(),
+              speed: 0.04 + Math.random() * 0.06,
+            }));
+
+          // Initial positions near phase centers
+          for (const n of nodes) {
+            const target = getTargetPos(n);
+            n.x = target.x + (Math.random() - 0.5) * 45;
+            n.y = target.y + (Math.random() - 0.5) * 45;
+          }
+
+          setupSimulation();
+          buildPhaseBar();
+          updateHUD();
+          updateTimelineUI();
+          fitToScreen(false);
+        }
+
+        function getTargetPos(n) {
+          if (layoutMode === "spiral") {
+            return { x: n.spiralX, y: n.spiralY };
+          }
+          if (n.phases.length > 0) {
+            // Average coordinates of all phases this problem belongs to (bridges float between!)
+            let sx = 0,
+              sy = 0;
+            for (const p of n.phases) {
+              sx += phaseCenters[p].x;
+              sy += phaseCenters[p].y;
+            }
+            return { x: sx / n.phases.length, y: sy / n.phases.length };
+          }
+          // Off-roadmap outer orbit
+          const idx = nodes.indexOf(n);
+          const ang = (idx * 2.39996) % (Math.PI * 2);
+          const R = Math.min(width, height) * 0.41;
+          return { x: Math.cos(ang) * R, y: Math.sin(ang) * R };
+        }
+
+        function setupSimulation() {
+          if (simulation) simulation.stop();
+
+          simulation = d3
+            .forceSimulation(nodes)
+            .force(
+              "link",
+              d3
+                .forceLink(links)
+                .id((d) => d.slug)
+                .distance((l) =>
+                  l.kind === "comet" ? 65 : l.kind === "bridge" ? 72 : 34,
+                )
+                .strength((l) => {
+                  if (layoutMode === "spiral") return 0.03;
+                  return l.kind === "comet"
+                    ? 0.08
+                    : l.kind === "bridge"
+                      ? 0.16
+                      : 0.35;
+                }),
+            )
+            .force(
+              "charge",
+              d3.forceManyBody().strength(layoutMode === "spiral" ? -14 : -48),
+            )
+            .force(
+              "collide",
+              d3
+                .forceCollide()
+                .radius((d) => d.r + (layoutMode === "spiral" ? 4.5 : 6)),
+            )
+            .force(
+              "x",
+              d3
+                .forceX((d) => getTargetPos(d).x)
+                .strength(layoutMode === "spiral" ? 0.55 : 0.16),
+            )
+            .force(
+              "y",
+              d3
+                .forceY((d) => getTargetPos(d).y)
+                .strength(layoutMode === "spiral" ? 0.55 : 0.16),
+            )
+            .alphaDecay(0.018)
+            .velocityDecay(0.32);
+        }
+
+        function switchLayout(mode) {
+          if (layoutMode === mode) return;
+          layoutMode = mode;
+          document.querySelectorAll("#layoutSwitch button").forEach((b) => {
+            b.classList.toggle("active", b.dataset.mode === mode);
+          });
+          setupSimulation();
+          simulation.alpha(0.95).restart();
+        }
+
+        // Zoom & Pan
+        const zoom = d3
+          .zoom()
+          .scaleExtent([0.35, 5.5])
+          .on("zoom", (event) => {
+            transform = event.transform;
+          });
+
+        d3.select(canvas).call(zoom).on("dblclick.zoom", null);
+
+        function fitToScreen(animate = true) {
+          const target = d3.zoomIdentity
+            .translate(width / 2, height / 2 - 14)
+            .scale(1);
+          if (animate) {
+            d3.select(canvas)
+              .transition()
+              .duration(650)
+              .call(zoom.transform, target);
+          } else {
+            d3.select(canvas).call(zoom.transform, target);
+          }
+        }
+
+        // Hit testing
+        function findNodeAt(sx, sy) {
+          const wx = (sx - transform.x) / transform.k;
+          const wy = (sy - transform.y) / transform.k;
+          let closest = null;
+          let bestDist = Infinity;
+          for (const n of nodes) {
+            if (n.firstTs > replayTs) continue;
+            const dx = wx - n.x;
+            const dy = wy - n.y;
+            const d = Math.hypot(dx, dy);
+            const hitR = Math.max(n.r + 6, 11 / transform.k);
+            if (d <= hitR && d < bestDist) {
+              bestDist = d;
+              closest = n;
+            }
+          }
+          return closest;
+        }
+
+        canvas.addEventListener("mousemove", (e) => {
+          const n = findNodeAt(e.clientX, e.clientY);
+          hoveredNode = n;
+          canvas.style.cursor = n ? "pointer" : "grab";
+          updateTooltip(n, e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener("mouseleave", () => {
+          hoveredNode = null;
+          updateTooltip(null, 0, 0);
+        });
+
+        canvas.addEventListener("click", (e) => {
+          const n = findNodeAt(e.clientX, e.clientY);
+          if (n) {
+            selectedNode = n;
+            openDossier(n);
+          } else {
+            selectedNode = null;
+            closeDossier();
+          }
+        });
+
+        canvas.addEventListener("dblclick", () => fitToScreen(true));
+
+        function updateTooltip(n, sx, sy) {
+          const tt = document.getElementById("tooltip");
+          if (!n) {
+            tt.classList.remove("show");
+            return;
+          }
+          document.getElementById("ttTitle").textContent =
+            `${n.number ? "#" + n.number + " · " : ""}${n.title}`;
+          const parts = [n.difficulty];
+          if (n.elo) parts.push(`${n.elo} ELO`);
+          parts.push(`${n.subs.length} sub${n.subs.length > 1 ? "s" : ""}`);
+          if (n.revisitCount > 0) parts.push(`★ Revisited`);
+          document.getElementById("ttMeta").textContent = parts.join("  •  ");
+          tt.style.left = `${sx}px`;
+          tt.style.top = `${sy}px`;
+          tt.classList.add("show");
+        }
+
+        function formatDate(ts) {
+          return new Date(ts * 1000).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }
+
+        function formatDateTime(ts) {
+          return new Date(ts * 1000).toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function openDossier(n) {
+          document.getElementById("dNum").textContent = n.number
+            ? `PROBLEM #${n.number}`
+            : "PROBLEM";
+          document.getElementById("dTitle").textContent = n.title;
+
+          const badges = document.getElementById("dBadges");
+          badges.innerHTML = "";
+          const addBadge = (text, cls = "") => {
+            const el = document.createElement("span");
+            el.className = `badge ${cls}`;
+            el.textContent = text;
+            badges.appendChild(el);
+          };
+          addBadge(n.difficulty, n.difficulty);
+          if (n.elo) addBadge(`${n.elo} ELO`, "elo");
+          if (n.isBridge)
+            addBadge(
+              `Bridge (${n.phases.map((p) => "P" + p).join(" ↔ ")})`,
+              "bridge",
+            );
+          if (n.revisitCount > 0) addBadge("Spaced Repetition ★", "Medium");
+
+          const cats = document.getElementById("dCats");
+          if (n.roadmapEntries.length) {
+            cats.innerHTML = n.roadmapEntries
+              .map(
+                (e) =>
+                  `<div><strong style="color:${PHASE_META[e.phase].color}">Phase ${e.phase}</strong> · ${e.category}</div>`,
+              )
+              .join("");
+          } else {
+            cats.innerHTML = `<span style="color:#94a3b8">Off-Roadmap / Side Quest</span>`;
+          }
+
+          const subsEl = document.getElementById("dSubs");
+          subsEl.innerHTML = n.subs
+            .map((s) => {
+              const cls = s.isRevisit
+                ? "revisit"
+                : s.status === "Accepted"
+                  ? "accepted"
+                  : "";
+              const gapDays =
+                s.gapSec >= REVISIT_GAP_SEC
+                  ? `+${Math.round(s.gapSec / 86400)}d later`
+                  : "";
+              return `
+              <div class="sub-item ${cls}">
+                <div class="sub-status">${s.status}</div>
+                <div class="sub-time">
+                  ${formatDateTime(s.timestamp)}
+                  ${gapDays ? `<span class="sub-gap">${gapDays}</span>` : ""}
+                </div>
+              </div>
+            `;
+            })
+            .join("");
+
+          document.getElementById("dLink").href =
+            `https://leetcode.com/problems/${n.slug}/`;
+          document.getElementById("dossier").classList.add("open");
+        }
+
+        function closeDossier() {
+          document.getElementById("dossier").classList.remove("open");
+        }
+        document
+          .getElementById("dossierClose")
+          .addEventListener("click", () => {
+            selectedNode = null;
+            closeDossier();
+          });
+
+        // Phase Filter Bar
+        function buildPhaseBar() {
+          const bar = document.getElementById("phaseBar");
+          bar.innerHTML = "";
+          const items = [
+            { key: "all", label: "All Stars", color: "#e6edf7" },
+            {
+              key: "1",
+              label: PHASE_META[1].short,
+              color: PHASE_META[1].color,
+            },
+            {
+              key: "2",
+              label: PHASE_META[2].short,
+              color: PHASE_META[2].color,
+            },
+            {
+              key: "3",
+              label: PHASE_META[3].short,
+              color: PHASE_META[3].color,
+            },
+            {
+              key: "4",
+              label: PHASE_META[4].short,
+              color: PHASE_META[4].color,
+            },
+            {
+              key: "5",
+              label: PHASE_META[5].short,
+              color: PHASE_META[5].color,
+            },
+            { key: "revisit", label: "Revisited (+Days)", color: "#fbbf24" },
+            { key: "bridge", label: "Phase Bridges", color: "#f472b6" },
+          ];
+          for (const it of items) {
+            const pill = document.createElement("div");
+            pill.className = `phase-pill ${activeFilter === it.key ? "active" : ""}`;
+            pill.innerHTML = `<span class="dot" style="background:${it.color}; box-shadow: 0 0 8px ${it.color}"></span>${it.label}`;
+            pill.addEventListener("click", () => {
+              activeFilter =
+                activeFilter === it.key && it.key !== "all" ? "all" : it.key;
+              buildPhaseBar();
+            });
+            bar.appendChild(pill);
+          }
+        }
+
+        function matchesFilter(n) {
+          if (activeFilter === "all") return true;
+          if (activeFilter === "revisit") return n.revisitCount > 0;
+          if (activeFilter === "bridge") return n.isBridge;
+          return n.phases.includes(Number(activeFilter));
+        }
+
+        // HUD & Timeline
+        function updateHUD() {
+          const visibleNodes = nodes.filter((n) => n.firstTs <= replayTs);
+          const visibleSubs = submissions.filter(
+            (s) => s.timestamp <= replayTs,
+          );
+          const revisitedCount = visibleNodes.filter((n) =>
+            n.subs.some((s) => s.isRevisit && s.timestamp <= replayTs),
+          ).length;
+          const eloNodes = visibleNodes.filter((n) => n.elo);
+          const avgElo = eloNodes.length
+            ? Math.round(
+                eloNodes.reduce((acc, n) => acc + n.elo, 0) / eloNodes.length,
+              )
+            : null;
+
+          document.getElementById("hudStats").innerHTML = `
+          <span><strong>${visibleNodes.length}</strong> / ${nodes.length} problems</span>
+          <span><strong>${visibleSubs.length}</strong> / ${submissions.length} submissions</span>
+          <span><strong>${revisitedCount}</strong> revisited</span>
+          ${avgElo ? `<span>avg ELO <strong>${avgElo}</strong></span>` : ""}
+        `;
+        }
+
+        function updateTimelineUI() {
+          const scrubber = document.getElementById("scrubber");
+          const frac = (replayTs - minTs) / Math.max(1, maxTs - minTs);
+          scrubber.value = Math.round(frac * 1000);
+          const dayNum = Math.max(
+            1,
+            Math.floor((replayTs - minTs) / 86400) + 1,
+          );
+          document.getElementById("timelineDate").textContent =
+            `Day ${dayNum} · ${formatDate(replayTs)}`;
+        }
+
+        function spawnRipple(node, kind) {
+          ripples.push({
+            x: node.x,
+            y: node.y,
+            r: node.r,
+            maxR:
+              kind === "revisit"
+                ? node.r + 48
+                : kind === "ignite"
+                  ? node.r + 24
+                  : node.r + 14,
+            alpha: kind === "revisit" ? 0.95 : 0.7,
+            color: kind === "revisit" ? "251, 191, 36" : node.rgb,
+            speed: kind === "revisit" ? 0.9 : 1.3,
+          });
+        }
+
+        // Controls
+        document.querySelectorAll("#layoutSwitch button").forEach((btn) => {
+          btn.addEventListener("click", () => switchLayout(btn.dataset.mode));
+        });
+
+        document
+          .getElementById("resetViewBtn")
+          .addEventListener("click", () => fitToScreen(true));
+
+        document
+          .getElementById("playBtn")
+          .addEventListener("click", togglePlay);
+        window.addEventListener("keydown", (e) => {
+          if (e.code === "Space" && e.target.tagName !== "INPUT") {
+            e.preventDefault();
+            togglePlay();
+          }
+        });
+
+        function togglePlay() {
+          if (!nodes.length) return;
+          if (!isPlaying && replayTs >= maxTs - 60) {
+            replayTs = minTs - 3600;
+            prevReplayTs = replayTs;
+            ripples = [];
+            document.getElementById("ticker").textContent =
+              "Starting Oct 19...";
+          }
+          isPlaying = !isPlaying;
+          document.getElementById("playBtn").textContent = isPlaying
+            ? "❚❚"
+            : "▶";
+        }
+
+        document.getElementById("scrubber").addEventListener("input", (e) => {
+          isPlaying = false;
+          document.getElementById("playBtn").textContent = "▶";
+          const frac = Number(e.target.value) / 1000;
+          replayTs = minTs + frac * (maxTs - minTs);
+          prevReplayTs = replayTs;
+          ripples = [];
+          updateHUD();
+          updateTimelineUI();
+        });
+
+        document.getElementById("speedBtn").addEventListener("click", () => {
+          replaySpeedIdx = (replaySpeedIdx + 1) % SPEEDS.length;
+          document.getElementById("speedBtn").textContent =
+            SPEEDS[replaySpeedIdx].label;
+        });
+
+        document.getElementById("exportBtn").addEventListener("click", () => {
+          const expCanvas = document.createElement("canvas");
+          const expW = 3840;
+          const expH = 2160;
+          expCanvas.width = expW;
+          expCanvas.height = expH;
+          const eCtx = expCanvas.getContext("2d");
+
+          const scale = Math.min(expW / width, expH / height);
+          eCtx.save();
+          renderScene(eCtx, expW, expH, scale, performance.now(), true);
+          eCtx.restore();
+
+          // Subtle editorial signature
+          eCtx.fillStyle = "rgba(230, 237, 247, 0.85)";
+          eCtx.font = "400 54px 'Instrument Serif', Georgia, serif";
+          eCtx.fillText("Thirty-Four Days in Orbit", 90, 118);
+          eCtx.fillStyle = "rgba(124, 138, 165, 0.85)";
+          eCtx.font = "400 22px 'JetBrains Mono', monospace";
+          eCtx.fillText(
+            `${nodes.length} PROBLEMS  ·  ${submissions.length} SUBMISSIONS  ·  OCT – NOV`,
+            92,
+            156,
+          );
+
+          const link = document.createElement("a");
+          link.download = `constellation-${layoutMode}.png`;
+          link.href = expCanvas.toDataURL("image/png");
+          link.click();
+        });
+
+        // Main Render Loop
+        function renderScene(
+          c,
+          w,
+          h,
+          overrideScale = null,
+          now = 0,
+          isExport = false,
+        ) {
+          c.fillStyle = "#05070c";
+          c.fillRect(0, 0, w, h);
+
+          // Soft background vignette
+          const bgGrad = c.createRadialGradient(
+            w * 0.5,
+            h * 0.5,
+            0,
+            w * 0.5,
+            h * 0.5,
+            Math.max(w, h) * 0.72,
+          );
+          bgGrad.addColorStop(0, "#0b1120");
+          bgGrad.addColorStop(1, "#04060a");
+          c.fillStyle = bgGrad;
+          c.fillRect(0, 0, w, h);
+
+          // Distant dust stars (screen space)
+          if (!isExport) {
+            for (const d of ambientDust) {
+              const alpha =
+                d.a + Math.sin(now * d.twinkleSpeed + d.phase) * 0.04;
+              c.fillStyle = `rgba(220, 232, 255, ${Math.max(0.01, alpha)})`;
+              c.beginPath();
+              c.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+              c.fill();
+            }
+          }
+
+          c.save();
+          if (overrideScale) {
+            c.translate(w / 2, h / 2);
+            c.scale(overrideScale * transform.k, overrideScale * transform.k);
+            c.translate(
+              (transform.x - width / 2) / transform.k,
+              (transform.y - height / 2) / transform.k,
+            );
+          } else {
+            c.translate(transform.x, transform.y);
+            c.scale(transform.k, transform.k);
+          }
+
+          // Phase Nebulae Glows (Constellation Mode)
+          if (layoutMode === "constellation") {
+            for (const p of [1, 2, 3, 4, 5]) {
+              const pc = phaseCenters[p];
+              const meta = PHASE_META[p];
+              const nebR = Math.min(width, height) * 0.28;
+              const g = c.createRadialGradient(pc.x, pc.y, 0, pc.x, pc.y, nebR);
+              const dim =
+                activeFilter !== "all" && activeFilter !== String(p)
+                  ? 0.025
+                  : 0.085;
+              g.addColorStop(0, `rgba(${meta.rgb}, ${dim})`);
+              g.addColorStop(0.55, `rgba(${meta.rgb}, ${dim * 0.35})`);
+              g.addColorStop(1, "rgba(0, 0, 0, 0)");
+              c.fillStyle = g;
+              c.beginPath();
+              c.arc(pc.x, pc.y, nebR, 0, Math.PI * 2);
+              c.fill();
+            }
+          }
+
+          const activeNode = hoveredNode || selectedNode;
+          const activeNeighbors = activeNode
+            ? adjMap.get(activeNode.slug)
+            : null;
+
+          // Smooth focus target opacities
+          for (const n of nodes) {
+            let targetAlpha = matchesFilter(n) ? 1 : 0.1;
+            if (activeNode) {
+              if (n === activeNode || activeNeighbors.has(n.slug)) {
+                targetAlpha = 1;
+              } else {
+                targetAlpha = 0.12;
+              }
+            }
+            const cur = focusOpacity.get(n.slug) ?? 1;
+            focusOpacity.set(n.slug, cur + (targetAlpha - cur) * 0.16);
+          }
+
+          // Draw Links (Curved luminous threads)
+          for (const l of links) {
+            const a = l.source;
+            const b = l.target;
+            if (a.firstTs > replayTs || b.firstTs > replayTs) continue;
+
+            const aOp = focusOpacity.get(a.slug) ?? 1;
+            const bOp = focusOpacity.get(b.slug) ?? 1;
+            let alpha = Math.min(aOp, bOp);
+
+            const isHighlighted =
+              activeNode && (a === activeNode || b === activeNode);
+
+            if (layoutMode === "spiral" && !isHighlighted) {
+              alpha *= 0.25;
+            }
+
+            if (l.kind === "comet") {
+              c.setLineDash([2.5, 4]);
+              c.lineWidth = isHighlighted ? 1.1 : 0.6;
+              c.strokeStyle = `rgba(203, 213, 225, ${alpha * (isHighlighted ? 0.55 : 0.14)})`;
+            } else if (l.kind === "bridge") {
+              c.setLineDash([]);
+              c.lineWidth = isHighlighted ? 1.6 : 0.95;
+              c.strokeStyle = `rgba(244, 114, 182, ${alpha * (isHighlighted ? 0.85 : 0.28)})`;
+            } else {
+              c.setLineDash([]);
+              const rgb = PHASE_META[l.phase]?.rgb || "148, 163, 184";
+              c.lineWidth = isHighlighted ? 1.45 : 0.75;
+              c.strokeStyle = `rgba(${rgb}, ${alpha * (isHighlighted ? 0.78 : 0.2)})`;
+            }
+
+            const mx = (a.x + b.x) / 2 - (b.y - a.y) * l.curve;
+            const my = (a.y + b.y) / 2 + (b.x - a.x) * l.curve;
+
+            c.beginPath();
+            c.moveTo(a.x, a.y);
+            c.quadraticCurveTo(mx, my, b.x, b.y);
+            c.stroke();
+          }
+          c.setLineDash([]);
+
+          // Drifting Light Particles along edges
+          if (!isExport) {
+            c.globalCompositeOperation = "lighter";
+            for (const pt of particles) {
+              const a = pt.link.source;
+              const b = pt.link.target;
+              if (a.firstTs > replayTs || b.firstTs > replayTs) continue;
+              const op = Math.min(
+                focusOpacity.get(a.slug) ?? 1,
+                focusOpacity.get(b.slug) ?? 1,
+              );
+              if (op < 0.25) continue;
+
+              const t = pt.t;
+              const mx = (a.x + b.x) / 2 - (b.y - a.y) * pt.link.curve;
+              const my = (a.y + b.y) / 2 + (b.x - a.x) * pt.link.curve;
+              const px =
+                (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * mx + t * t * b.x;
+              const py =
+                (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * my + t * t * b.y;
+              const rgb = PHASE_META[pt.link.phase]?.rgb || "226, 232, 240";
+              c.fillStyle = `rgba(${rgb}, ${0.42 * op})`;
+              c.beginPath();
+              c.arc(px, py, 1.15, 0, Math.PI * 2);
+              c.fill();
+            }
+            c.globalCompositeOperation = "source-over";
+          }
+
+          // Expanding Replay Ripples
+          for (let i = ripples.length - 1; i >= 0; i--) {
+            const rp = ripples[i];
+            c.strokeStyle = `rgba(${rp.color}, ${rp.alpha})`;
+            c.lineWidth = 1.6;
+            c.beginPath();
+            c.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+            c.stroke();
+          }
+
+          // Draw Star Nodes
+          for (const n of nodes) {
+            if (n.firstTs > replayTs) continue;
+            const alpha = focusOpacity.get(n.slug) ?? 1;
+            const pulse = 1 + Math.sin(now * 0.0022 + n.twinkleOffset) * 0.06;
+            const r = n.r * pulse;
+
+            // Determine status at replayTs
+            let acceptedSoFar = false;
+            let revisitedSoFar = false;
+            for (const s of n.subs) {
+              if (s.timestamp > replayTs) break;
+              if (s.status === "Accepted") acceptedSoFar = true;
+              if (s.isRevisit) revisitedSoFar = true;
+            }
+
+            // Outer glow halo
+            const haloR =
+              r * (n === activeNode ? 4.4 : n.elo && n.elo >= 1750 ? 3.4 : 2.7);
+            const grad = c.createRadialGradient(n.x, n.y, 0, n.x, n.y, haloR);
+            grad.addColorStop(0, `rgba(${n.rgb}, ${0.52 * alpha})`);
+            grad.addColorStop(0.45, `rgba(${n.rgb}, ${0.14 * alpha})`);
+            grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+            c.fillStyle = grad;
+            c.beginPath();
+            c.arc(n.x, n.y, haloR, 0, Math.PI * 2);
+            c.fill();
+
+            // Spaced-repetition golden orbital ring
+            if (revisitedSoFar) {
+              c.strokeStyle = `rgba(251, 191, 36, ${0.72 * alpha})`;
+              c.lineWidth = 1.15;
+              c.beginPath();
+              c.arc(n.x, n.y, r + 3.2, 0, Math.PI * 2);
+              c.stroke();
+            }
+
+            // Subtle 4-point flare for Phase Bridge stars
+            if (n.isBridge && alpha > 0.35) {
+              c.strokeStyle = `rgba(255, 255, 255, ${0.42 * alpha})`;
+              c.lineWidth = 0.85;
+              const flare = r * 2.1;
+              c.beginPath();
+              c.moveTo(n.x - flare, n.y);
+              c.lineTo(n.x + flare, n.y);
+              c.moveTo(n.x, n.y - flare);
+              c.lineTo(n.x, n.y + flare);
+              c.stroke();
+            }
+
+            // Star Core
+            c.fillStyle = acceptedSoFar
+              ? `rgba(${n.rgb}, ${0.95 * alpha})`
+              : `rgba(251, 191, 36, ${0.75 * alpha})`;
+            c.beginPath();
+            c.arc(n.x, n.y, r, 0, Math.PI * 2);
+            c.fill();
+
+            // Hot white center pinpoint
+            c.fillStyle = `rgba(255, 255, 255, ${0.88 * alpha})`;
+            c.beginPath();
+            c.arc(n.x, n.y, Math.max(1.2, r * 0.42), 0, Math.PI * 2);
+            c.fill();
+
+            // Crisp highlight ring on hover/selected
+            if (n === activeNode) {
+              c.strokeStyle = "rgba(255, 255, 255, 0.9)";
+              c.lineWidth = 1.5;
+              c.beginPath();
+              c.arc(n.x, n.y, r + 5.5, 0, Math.PI * 2);
+              c.stroke();
+            }
+          }
+
+          // Phase Labels (Constellation Mode)
+          if (layoutMode === "constellation") {
+            c.textAlign = "center";
+            for (const p of [1, 2, 3, 4, 5]) {
+              const pc = phaseCenters[p];
+              const meta = PHASE_META[p];
+              const dim =
+                activeFilter !== "all" && activeFilter !== String(p)
+                  ? 0.15
+                  : 0.62;
+              c.fillStyle = `rgba(${meta.rgb}, ${dim})`;
+              c.font = "500 10.5px 'JetBrains Mono', monospace";
+              c.fillText(
+                meta.name.toUpperCase(),
+                pc.x,
+                pc.y - Math.min(width, height) * 0.165,
+              );
+            }
+          }
+
+          c.restore();
+        }
+
+        function tick(now) {
+          const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+          lastFrameTime = now;
+
+          // Advance particles
+          for (const pt of particles) {
+            pt.t += pt.speed * dt;
+            if (pt.t > 1) pt.t -= 1;
+          }
+
+          // Advance ripples
+          for (let i = ripples.length - 1; i >= 0; i--) {
+            const rp = ripples[i];
+            rp.r += (rp.maxR - rp.r) * 0.08 + rp.speed;
+            rp.alpha *= 0.94;
+            if (rp.alpha < 0.03) ripples.splice(i, 1);
+          }
+
+          // Advance Time-Lapse Replay
+          if (isPlaying && nodes.length) {
+            const secPerSec = SPEEDS[replaySpeedIdx].daysPerSec * 86400;
+            prevReplayTs = replayTs;
+            replayTs = Math.min(maxTs, replayTs + secPerSec * dt);
+
+            for (const sub of submissions) {
+              if (sub.timestamp > prevReplayTs && sub.timestamp <= replayTs) {
+                const node = nodeBySlug.get(sub.slug);
+                if (node) {
+                  const subObj = node.subs.find((s) => s.id === sub.id);
+                  const kind =
+                    subObj && subObj.isRevisit
+                      ? "revisit"
+                      : node.firstTs === sub.timestamp
+                        ? "ignite"
+                        : "spark";
+                  spawnRipple(node, kind);
+
+                  const ticker = document.getElementById("ticker");
+                  const cls =
+                    kind === "revisit"
+                      ? "revisit"
+                      : sub.status === "Accepted"
+                        ? "ok"
+                        : "";
+                  ticker.innerHTML = `<span class="${cls}">${sub.title} · ${
+                    kind === "revisit" ? "Revisited ★" : sub.status
+                  }</span>`;
+                }
+              }
+            }
+
+            updateHUD();
+            updateTimelineUI();
+
+            if (replayTs >= maxTs) {
+              isPlaying = false;
+              document.getElementById("playBtn").textContent = "▶";
+            }
+          }
+
+          ctx.save();
+          ctx.scale(dpr, dpr);
+          renderScene(ctx, width, height, null, now, false);
+          ctx.restore();
+
+          requestAnimationFrame(tick);
+        }
+
+        // Data Loading
+        async function boot() {
+          resize();
+          requestAnimationFrame(tick);
+
+          try {
+            const [enrRes, rmRes] = await Promise.all([
+              fetch("./enriched_data.json"),
+              fetch("./roadmap.json"),
+            ]);
+            if (!enrRes.ok || !rmRes.ok) throw new Error("Fetch failed");
+            const [enriched, roadmap] = await Promise.all([
+              enrRes.json(),
+              rmRes.json(),
+            ]);
+            buildGraph(enriched, roadmap);
+          } catch (err) {
+            document.getElementById("fallbackModal").classList.add("show");
+          }
+        }
+
+        // Manual file fallback
+        let manualEnriched = null;
+        let manualRoadmap = null;
+        function tryManualBoot() {
+          if (manualEnriched && manualRoadmap) {
+            document.getElementById("fallbackModal").classList.remove("show");
+            buildGraph(manualEnriched, manualRoadmap);
+          }
+        }
+        document
+          .getElementById("fileEnriched")
+          .addEventListener("change", async (e) => {
+            if (e.target.files[0]) {
+              manualEnriched = JSON.parse(await e.target.files[0].text());
+              tryManualBoot();
+            }
+          });
+        document
+          .getElementById("fileRoadmap")
+          .addEventListener("change", async (e) => {
+            if (e.target.files[0]) {
+              manualRoadmap = JSON.parse(await e.target.files[0].text());
+              tryManualBoot();
+            }
+          });
+
+        boot();
+      })();
+    </script>
+  </body>
+</html>
