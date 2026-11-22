@@ -53,11 +53,18 @@
       }
 
       /* Top Left Header */
-      .hud-header {
+      .hud-stack {
         position: fixed;
         top: 22px;
         left: 26px;
         z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        max-width: calc(100vw - 52px);
+      }
+      .hud-header {
         pointer-events: none;
       }
       .hud-title {
@@ -141,45 +148,111 @@
         color: var(--text);
       }
 
-      /* Filter Pills (Bottom Left above Timeline) */
-      .phase-bar {
-        position: fixed;
-        left: 26px;
-        bottom: 86px;
-        z-index: 10;
+      /* Phase Filter Panel */
+      .filter-panel {
         display: flex;
+        flex-direction: column;
+        gap: 9px;
+        max-width: 100%;
+        padding: 10px 12px 12px;
+        background: var(--panel);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+      }
+      .filter-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 0 1px;
+      }
+      .filter-label {
+        display: inline-flex;
+        align-items: center;
         gap: 6px;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .filter-label svg {
+        opacity: 0.8;
+      }
+      .filter-reset {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.06em;
+        padding: 2px 5px;
+        border-radius: 4px;
+        color: var(--muted);
+      }
+      .filter-reset:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+      }
+      .filter-reset[hidden] {
+        display: none;
+      }
+      .filter-options {
+        display: flex;
         flex-wrap: wrap;
-        max-width: calc(100vw - 420px);
+        gap: 5px;
       }
       .phase-pill {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 7px;
         padding: 5px 10px;
+        font-family: var(--sans);
         font-size: 11.5px;
-        background: var(--panel);
-        backdrop-filter: blur(14px);
-        border: 1px solid var(--border);
-        border-radius: 999px;
+        font-weight: 400;
+        line-height: 1.2;
         color: var(--muted);
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 7px;
         cursor: pointer;
-        transition: all 0.18s ease;
+        transition:
+          background 0.16s ease,
+          border-color 0.16s ease,
+          color 0.16s ease,
+          box-shadow 0.16s ease;
       }
       .phase-pill:hover {
         color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
         border-color: rgba(255, 255, 255, 0.22);
       }
       .phase-pill.active {
         color: var(--text);
+        background: rgba(var(--pill-rgb), 0.18);
+        border-color: rgba(var(--pill-rgb), 0.7);
+        box-shadow: inset 0 0 0 1px rgba(var(--pill-rgb), 0.12);
+      }
+      .phase-pill:focus-visible {
+        outline: 2px solid #a5b4fc;
+        outline-offset: 2px;
+      }
+      .filter-sep {
+        width: 1px;
+        align-self: stretch;
+        margin: 2px 3px;
         background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.35);
       }
       .dot {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
         flex-shrink: 0;
+        background: var(--pill-color);
+      }
+      .phase-pill.active .dot {
+        box-shadow: 0 0 8px var(--pill-color);
       }
 
       /* Bottom Replay Bar */
@@ -522,11 +595,20 @@
   <body>
     <canvas id="sky"></canvas>
 
-    <div class="hud-header">
-      <div class="hud-title">Thirty-Four Days <em>in Orbit</em></div>
-      <div class="hud-stats" id="hudStats">
-        <span>Loading telemetry...</span>
+    <div class="hud-stack">
+      <div class="hud-header">
+        <div class="hud-title">Thirty-Four Days <em>in Orbit</em></div>
+        <div class="hud-stats" id="hudStats">
+          <span>Loading telemetry...</span>
+        </div>
       </div>
+
+      <div
+        class="filter-panel"
+        id="phaseBar"
+        role="group"
+        aria-label="Filter by phase"
+      ></div>
     </div>
 
     <div class="hud-controls">
@@ -545,8 +627,6 @@
         Export PNG
       </button>
     </div>
-
-    <div class="phase-bar" id="phaseBar"></div>
 
     <div class="timeline-bar">
       <button
@@ -1256,46 +1336,112 @@
           const bar = document.getElementById("phaseBar");
           bar.innerHTML = "";
           const items = [
-            { key: "all", label: "All Stars", color: "#e6edf7" },
+            {
+              key: "all",
+              label: "All Stars",
+              color: "#e6edf7",
+              rgb: "230, 237, 247",
+            },
             {
               key: "1",
               label: PHASE_META[1].short,
               color: PHASE_META[1].color,
+              rgb: PHASE_META[1].rgb,
             },
             {
               key: "2",
               label: PHASE_META[2].short,
               color: PHASE_META[2].color,
+              rgb: PHASE_META[2].rgb,
             },
             {
               key: "3",
               label: PHASE_META[3].short,
               color: PHASE_META[3].color,
+              rgb: PHASE_META[3].rgb,
             },
             {
               key: "4",
               label: PHASE_META[4].short,
               color: PHASE_META[4].color,
+              rgb: PHASE_META[4].rgb,
             },
             {
               key: "5",
               label: PHASE_META[5].short,
               color: PHASE_META[5].color,
+              rgb: PHASE_META[5].rgb,
             },
-            { key: "revisit", label: "Revisited (+Days)", color: "#fbbf24" },
-            { key: "bridge", label: "Phase Bridges", color: "#f472b6" },
+            {
+              key: "revisit",
+              label: "Revisited (+Days)",
+              color: "#fbbf24",
+              rgb: "251, 191, 36",
+            },
+            {
+              key: "bridge",
+              label: "Phase Bridges",
+              color: "#f472b6",
+              rgb: "244, 114, 182",
+            },
           ];
+
+          const head = document.createElement("div");
+          head.className = "filter-head";
+          head.innerHTML = `
+            <span class="filter-label">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 5h18l-7 8v6l-4 2v-8L3 5z" />
+              </svg>
+              Filter by phase
+            </span>`;
+          const reset = document.createElement("button");
+          reset.type = "button";
+          reset.className = "filter-reset";
+          reset.textContent = "Reset";
+          reset.title = "Show every star";
+          reset.hidden = activeFilter === "all";
+          reset.addEventListener("click", () => {
+            activeFilter = "all";
+            buildPhaseBar();
+          });
+          head.appendChild(reset);
+          bar.appendChild(head);
+
+          const options = document.createElement("div");
+          options.className = "filter-options";
+
           for (const it of items) {
-            const pill = document.createElement("div");
-            pill.className = `phase-pill ${activeFilter === it.key ? "active" : ""}`;
-            pill.innerHTML = `<span class="dot" style="background:${it.color}; box-shadow: 0 0 8px ${it.color}"></span>${it.label}`;
+            if (it.key === "revisit") {
+              const sep = document.createElement("span");
+              sep.className = "filter-sep";
+              sep.setAttribute("aria-hidden", "true");
+              options.appendChild(sep);
+            }
+
+            const isActive = activeFilter === it.key;
+            const pill = document.createElement("button");
+            pill.type = "button";
+            pill.className = `phase-pill ${isActive ? "active" : ""}`;
+            pill.style.setProperty("--pill-color", it.color);
+            pill.style.setProperty("--pill-rgb", it.rgb);
+            pill.setAttribute("aria-pressed", String(isActive));
+            pill.title =
+              it.key === "all"
+                ? "Show every star"
+                : isActive
+                  ? "Click again to show all stars"
+                  : `Focus ${it.label}`;
+            pill.innerHTML = `<span class="dot" aria-hidden="true"></span>${it.label}`;
             pill.addEventListener("click", () => {
-              activeFilter =
-                activeFilter === it.key && it.key !== "all" ? "all" : it.key;
+              activeFilter = isActive && it.key !== "all" ? "all" : it.key;
               buildPhaseBar();
             });
-            bar.appendChild(pill);
+            options.appendChild(pill);
           }
+          bar.appendChild(options);
         }
 
         function matchesFilter(n) {
