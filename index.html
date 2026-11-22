@@ -1733,10 +1733,15 @@
               n.oy = (n.x * sin + n.y * cos) * breathe - n.y;
             }
           } else {
-            // Constellation mode: a faint, individual drift per star.
+            // Constellation mode: a slow individual drift per star, layered
+            // from two gentle cycles so the paths don't simply retrace.
             for (const n of nodes) {
-              n.ox = Math.cos(t * 0.18 + n.twinkleOffset) * 2;
-              n.oy = Math.sin(t * 0.15 + n.twinkleOffset * 1.7) * 2;
+              n.ox =
+                Math.cos(t * 0.26 + n.twinkleOffset) * 3 +
+                Math.cos(t * 0.09 + n.twinkleOffset * 2.1) * 1.4;
+              n.oy =
+                Math.sin(t * 0.22 + n.twinkleOffset * 1.6) * 3 +
+                Math.sin(t * 0.08 + n.twinkleOffset * 1.2) * 1.4;
             }
           }
         }
